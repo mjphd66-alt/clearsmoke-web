@@ -2,54 +2,29 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useDispatch } from 'react-redux'
-import { setUser } from '@/store/slices/userSlice'
-import { setSpirit } from '@/store/slices/spiritSlice'
-import { userService, spiritService } from '@/services/localStorage'
 import { colors } from '@/theme/colors'
 
-export default function HomePage() {
+export default function LandingPage() {
   const router = useRouter()
-  const dispatch = useDispatch()
-  const [isReady, setIsReady] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    // 加载本地数据
-    const user = userService.get()
-    const spirit = spiritService.get()
-    dispatch(setUser(user))
-    dispatch(setSpirit(spirit))
-    setIsReady(true)
-    // 已有数据则跳转首页
-    if (user.nickname) {
-      router.replace('/home')
-    }
-  }, [dispatch, router])
+    setMounted(true)
+  }, [])
 
-  if (!isReady) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: colors.background,
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <span style={{ fontSize: 80, animation: 'pulse 1s infinite' }}>🌱</span>
-          <p style={{ fontSize: 24, fontWeight: 'bold', marginTop: 16, color: colors.primary }}>清烟之旅</p>
-        </div>
-      </div>
-    )
-  }
+  if (!mounted) return null
 
   return (
-    <main className="container" style={{
+    <div style={{
+      maxWidth: 480,
+      margin: '0 auto',
+      padding: 16,
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
+      background: colors.background,
     }}>
       <div style={{ textAlign: 'center', marginBottom: 48 }}>
         <span style={{ fontSize: 100 }}>🌱</span>
@@ -58,16 +33,25 @@ export default function HomePage() {
       </div>
 
       <button
-        className="btn btn-primary"
-        style={{ width: 280 }}
-        onClick={() => router.push('/login')}
+        onClick={() => router.push('/home')}
+        style={{
+          padding: 24,
+          borderRadius: 12,
+          background: colors.primary,
+          color: 'white',
+          fontSize: 18,
+          fontWeight: 'bold',
+          border: 'none',
+          cursor: 'pointer',
+          width: 280,
+        }}
       >
         开始戒烟之旅
       </button>
 
       <p style={{ textAlign: 'center', marginTop: 24, color: colors.textLight, fontSize: 12 }}>
-        数据保存在本地，无需注册登录
+        数据保存在本地浏览器
       </p>
-    </main>
+    </div>
   )
 }

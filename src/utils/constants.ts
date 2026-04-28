@@ -29,19 +29,14 @@ export const BIRD_EVOLUTION: EvolutionStage[] = [
   { stage: 3, min_days: 30, name: '凤凰', image_key: 'phoenix' },
 ]
 
-// 成就定义
-export const ACHIEVEMENT_DEFINITIONS = {
-  duration: [
-    { days: 1, name: '觉醒勋章', level: 'bronze' },
-    { days: 7, name: '坚持勋章', level: 'bronze' },
-    { days: 30, name: '勇士勋章', level: 'silver' },
-    { days: 100, name: '大师勋章', level: 'gold' },
-    { days: 365, name: '传奇勋章', level: 'diamond' },
-  ],
-  challenge: [
-    { count: 10, name: 'Boss克星', level: 'silver' },
-  ],
-}
+// 成就定义（用于展示）
+export const ACHIEVEMENT_DEFINITIONS_DISPLAY = [
+  { days: 1, name: '觉醒勋章', level: 'bronze' },
+  { days: 7, name: '坚持勋章', level: 'bronze' },
+  { days: 30, name: '勇士勋章', level: 'silver' },
+  { days: 100, name: '大师勋章', level: 'gold' },
+  { days: 365, name: '传奇勋章', level: 'diamond' },
+]
 
 // 每日能量配置
 export const ENERGY_CONFIG = {

@@ -1,33 +1,74 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSelector, useDispatch } from 'react-redux'
-import { RootState } from '@/store'
-import { setUser } from '@/store/slices/userSlice'
-import { setSpirit } from '@/store/slices/spiritSlice'
-import { userService, spiritService, getCurrentLevel } from '@/services/localStorage'
 import { colors } from '@/theme/colors'
-import { BottomNav } from '@/components/BottomNav'
+
+const LEVELS = [
+  { level: 1, days: 0, name: '觉醒关' },
+  { level: 2, days: 3, name: '考验关' },
+  { level: 3, days: 7, name: '周里程碑' },
+  { level: 4, days: 14, name: '半月挑战' },
+  { level: 5, days: 21, name: '习惯关' },
+  { level: 6, days: 30, name: '月度Boss' },
+]
+
+const EVOLUTION = [
+  { stage: 1, name: '种子', icon: '🌱' },
+  { stage: 2, name: '小树苗', icon: '🌿' },
+  { stage: 3, name: '大树', icon: '🌳' },
+  { stage: 4, name: '森林守护者', icon: '🌲' },
+]
+
+const STORAGE_KEY = 'clearsmoke_data'
+
+type AppData = {
+  nickname: string
+  days: number
+  energy: number
+  stage: number
+  records: string[]
+  achievements: string[]
+}
+
+const loadData = (): AppData => {
+  if (typeof window === 'undefined') return { nickname: '', days: 0, energy: 70, stage: 1, records: [], achievements: [] }
+  const stored = localStorage.getItem(STORAGE_KEY)
+  return stored ? JSON.parse(stored) : { nickname: '', days: 0, energy: 70, stage: 1, records: [], achievements: [] }
+}
 
 export default function ProfilePage() {
   const router = useRouter()
-  const dispatch = useDispatch()
-  const { user } = useSelector((state: RootState) => state.user)
-  const { spirit } = useSelector((state: RootState) => state.spirit)
-  const { totalDays } = useSelector((state: RootState) => state.quit)
+  const [mounted, setMounted] = useState(false)
+  const [data, setData] = useState<AppData>({ nickname: '', days: 0, energy: 70, stage: 1, records: [], achievements: [] })
 
-  const handleClearData = () => {
+  useEffect(() => {
+    setMounted(true)
+    setData(loadData())
+  }, [])
+
+  const getCurrentLevel = () => {
+    for (let i = LEVELS.length - 1; i >= 0; i--) {
+      if (data.days >= LEVELS[i].days) return LEVELS[i]
+    }
+    return LEVELS[0]
+  }
+
+  const handleClear = () => {
     if (typeof window !== 'undefined') {
-      localStorage.clear()
-      // 重置为默认值
-      dispatch(setUser(userService.get()))
-      dispatch(setSpirit(spiritService.get()))
+      localStorage.removeItem(STORAGE_KEY)
       router.push('/')
     }
   }
 
+  if (!mounted) return null
+
+  const level = getCurrentLevel()
+  const evolution = EVOLUTION.find(e => e.stage === data.stage) || EVOLUTION[0]
+
   return (
-    <main className="container" style={{ paddingBottom: 80 }}>
+    <div style={{ maxWidth: 480, margin: '0 auto', padding: 16, minHeight: '100vh', background: colors.background, paddingBottom: 80 }}>
+      {/* 头部 */}
       <header style={{ textAlign: 'center', marginTop: 24, marginBottom: 24 }}>
         <div style={{
           width: 80,
@@ -39,48 +80,30 @@ export default function ProfilePage() {
           justifyContent: 'center',
           margin: '0 auto',
         }}>
-          <span style={{ fontSize: 40 }}>{spirit?.type === 'tree' ? '🌱' : '🥚'}</span>
+          <span style={{ fontSize: 40 }}>{evolution.icon}</span>
         </div>
-        <h2 style={{ fontSize: 24, fontWeight: 'bold', marginTop: 16, color: colors.text }}>
-          {user?.nickname || '戒烟者'}
-        </h2>
+        <h2 style={{ fontSize: 24, fontWeight: 'bold', marginTop: 16, color: colors.text }}>{data.nickname || '戒烟者'}</h2>
       </header>
 
-      <div className="card" style={{ marginBottom: 16 }}>
+      {/* 戒烟进度 */}
+      <div style={{ background: colors.card, borderRadius: 12, padding: 16, marginBottom: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
         <h3 style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 16 }}>戒烟进度</h3>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
           <span style={{ color: colors.textLight }}>当前关卡</span>
-          <span style={{ fontWeight: 'bold', color: colors.primary }}>{getCurrentLevel(totalDays).name}</span>
+          <span style={{ fontWeight: 'bold', color: colors.primary }}>{level.name}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
           <span style={{ color: colors.textLight }}>戒烟天数</span>
-          <span style={{ fontWeight: 'bold' }}>{totalDays} 天</span>
+          <span style={{ fontWeight: 'bold' }}>{data.days} 天</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ color: colors.textLight }}>戒烟目标</span>
-          <span style={{ fontWeight: 'bold' }}>{user?.quit_goal === 'immediate' ? '立即戒烟' : '循序渐进'}</span>
+          <span style={{ color: colors.textLight }}>精灵能量</span>
+          <span style={{ fontWeight: 'bold', color: data.energy >= 80 ? colors.success : colors.warning }}>{data.energy}/100</span>
         </div>
       </div>
 
-      {spirit && (
-        <div className="card" style={{ marginBottom: 16 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 16 }}>我的精灵</h3>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ color: colors.textLight }}>精灵名称</span>
-            <span style={{ fontWeight: 'bold' }}>{spirit.name}</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ color: colors.textLight }}>精灵类型</span>
-            <span style={{ fontWeight: 'bold' }}>{spirit.type === 'tree' ? '树木系列' : '动物系列'}</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: colors.textLight }}>能量值</span>
-            <span style={{ fontWeight: 'bold', color: spirit.energy >= 80 ? colors.success : spirit.energy >= 50 ? colors.warning : colors.error }}>{spirit.energy}/100</span>
-          </div>
-        </div>
-      )}
-
-      <div className="card">
+      {/* 健康恢复 */}
+      <div style={{ background: colors.card, borderRadius: 12, padding: 16, marginBottom: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
         <h3 style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 16 }}>健康恢复时间</h3>
         <div style={{ fontSize: 14, color: colors.textLight, lineHeight: 1.6 }}>
           <p>• 20分钟：心率和血压开始下降</p>
@@ -91,10 +114,11 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* 清除数据 */}
       <button
+        onClick={handleClear}
         style={{
           width: '100%',
-          marginTop: 24,
           padding: 16,
           borderRadius: 12,
           background: colors.background,
@@ -103,12 +127,29 @@ export default function ProfilePage() {
           fontSize: 16,
           cursor: 'pointer',
         }}
-        onClick={handleClearData}
       >
         清除所有数据
       </button>
 
-      <BottomNav />
-    </main>
+      {/* 底部导航 */}
+      <nav style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        background: colors.card,
+        display: 'flex',
+        justifyContent: 'space-around',
+        padding: 8,
+        boxShadow: '0 -2px 8px rgba(0,0,0,0.1)',
+      }}>
+        {[{ path: '/home', icon: '🏠', label: '首页' }, { path: '/achievement', icon: '🏆', label: '成就' }, { path: '/profile', icon: '👤', label: '我的' }].map(tab => (
+          <button key={tab.path} onClick={() => router.push(tab.path)} style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'center', color: colors.primary }}>
+            <span style={{ fontSize: 24 }}>{tab.icon}</span>
+            <p style={{ fontSize: 12 }}>{tab.label}</p>
+          </button>
+        ))}
+      </nav>
+    </div>
   )
 }

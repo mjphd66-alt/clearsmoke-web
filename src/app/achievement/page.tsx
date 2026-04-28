@@ -1,88 +1,104 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSelector, useDispatch } from 'react-redux'
-import { RootState } from '@/store'
-import { setAchievements } from '@/store/slices/achievementSlice'
-import { achievementService, getCurrentLevel } from '@/services/localStorage'
 import { colors } from '@/theme/colors'
-import { BottomNav } from '@/components/BottomNav'
-import { ACHIEVEMENT_DEFINITIONS } from '@/utils/constants'
+
+const ACHIEVEMENTS = [
+  { days: 1, name: '觉醒勋章', level: 'bronze', icon: '🥉' },
+  { days: 7, name: '坚持勋章', level: 'bronze', icon: '🥉' },
+  { days: 30, name: '勇士勋章', level: 'silver', icon: '🥈' },
+  { days: 100, name: '大师勋章', level: 'gold', icon: '🥇' },
+  { days: 365, name: '传奇勋章', level: 'diamond', icon: '💎' },
+]
+
+const STORAGE_KEY = 'clearsmoke_data'
+
+type AppData = {
+  nickname: string
+  days: number
+  energy: number
+  stage: number
+  records: string[]
+  achievements: string[]
+}
+
+const loadData = (): AppData => {
+  if (typeof window === 'undefined') return { nickname: '', days: 0, energy: 70, stage: 1, records: [], achievements: [] }
+  const stored = localStorage.getItem(STORAGE_KEY)
+  return stored ? JSON.parse(stored) : { nickname: '', days: 0, energy: 70, stage: 1, records: [], achievements: [] }
+}
 
 const levelColors: Record<string, string> = {
-  bronze: colors.bronze,
-  silver: colors.silver,
-  gold: colors.gold,
-  diamond: colors.diamond,
+  bronze: '#CD7F32',
+  silver: '#C0C0C0',
+  gold: '#FFD700',
+  diamond: '#B9F2FF',
 }
 
 export default function AchievementPage() {
   const router = useRouter()
-  const dispatch = useDispatch()
-  const { achievements } = useSelector((state: RootState) => state.achievement)
-  const { totalDays } = useSelector((state: RootState) => state.quit)
+  const [mounted, setMounted] = useState(false)
+  const [achievements, setAchievements] = useState<string[]>([])
 
   useEffect(() => {
-    const achs = achievementService.getAll()
-    dispatch(setAchievements(achs))
-  }, [dispatch])
+    setMounted(true)
+    setAchievements(loadData().achievements)
+  }, [])
 
-  const allAchievements = ACHIEVEMENT_DEFINITIONS.duration.map(a => ({
-    ...a,
-    unlocked: achievements.some(ua => ua.achievement_name === a.name),
-  }))
+  if (!mounted) return null
 
   return (
-    <main className="container" style={{ paddingBottom: 80 }}>
+    <div style={{ maxWidth: 480, margin: '0 auto', padding: 16, minHeight: '100vh', background: colors.background, paddingBottom: 80 }}>
       <header style={{ marginTop: 24, marginBottom: 24 }}>
         <h2 style={{ fontSize: 24, fontWeight: 'bold', color: colors.text }}>成就殿堂</h2>
-        <p style={{ fontSize: 14, color: colors.textLight, marginTop: 4 }}>已解锁 {achievements.length} / {allAchievements.length} 个成就</p>
+        <p style={{ fontSize: 14, color: colors.textLight, marginTop: 4 }}>已解锁 {achievements.length} / {ACHIEVEMENTS.length} 个成就</p>
       </header>
 
-      <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
-        {Object.entries(levelColors).map(([level, color]) => (
-          <div key={level} className="card" style={{ flex: 1, textAlign: 'center', padding: 12 }}>
-            <span style={{ fontSize: 20, color }}>{level === 'bronze' ? '🥉' : level === 'silver' ? '🥈' : level === 'gold' ? '🥇' : '💎'}</span>
-            <p style={{ fontSize: 12, marginTop: 4 }}>{achievements.filter(a => a.achievement_level === level).length}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="card">
-        <h3 style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 16 }}>戒烟时长成就</h3>
-        {allAchievements.map((achievement, index) => (
-          <div
-            key={index}
-            style={{
+      {/* 成就列表 */}
+      <div style={{ background: colors.card, borderRadius: 12, padding: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+        {ACHIEVEMENTS.map((a, i) => {
+          const unlocked = achievements.includes(a.name)
+          return (
+            <div key={i} style={{
               display: 'flex',
               alignItems: 'center',
               padding: 12,
               marginBottom: 8,
               borderRadius: 8,
-              background: achievement.unlocked ? `${levelColors[achievement.level]}20` : colors.background,
-              border: achievement.unlocked ? `2px solid ${levelColors[achievement.level]}` : 'none',
-            }}
-          >
-            <span style={{ fontSize: 32 }}>
-              {achievement.unlocked ? (achievement.level === 'bronze' ? '🥉' : achievement.level === 'silver' ? '🥈' : achievement.level === 'gold' ? '🥇' : '💎') : '🔒'}
-            </span>
-            <div style={{ marginLeft: 12 }}>
-              <p style={{ fontWeight: 'bold', color: achievement.unlocked ? levelColors[achievement.level] : colors.textLight }}>
-                {achievement.name}
-              </p>
-              <p style={{ fontSize: 12, color: colors.textLight }}>
-                {achievement.unlocked ? '已解锁' : `${achievement.days}天后解锁`}
-              </p>
+              background: unlocked ? `${levelColors[a.level]}20` : colors.background,
+              border: unlocked ? `2px solid ${levelColors[a.level]}` : 'none',
+            }}>
+              <span style={{ fontSize: 32 }}>{unlocked ? a.icon : '🔒'}</span>
+              <div style={{ marginLeft: 12 }}>
+                <p style={{ fontWeight: 'bold', color: unlocked ? levelColors[a.level] : colors.textLight }}>{a.name}</p>
+                <p style={{ fontSize: 12, color: colors.textLight }}>{unlocked ? '已解锁' : `${a.days}天后解锁`}</p>
+              </div>
+              {unlocked && <span style={{ marginLeft: 'auto', fontSize: 20 }}>✓</span>}
             </div>
-            {achievement.unlocked && (
-              <span style={{ marginLeft: 'auto', fontSize: 20 }}>✓</span>
-            )}
-          </div>
-        ))}
+          )
+        })}
       </div>
 
-      <BottomNav />
-    </main>
+      {/* 底部导航 */}
+      <nav style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        background: colors.card,
+        display: 'flex',
+        justifyContent: 'space-around',
+        padding: 8,
+        boxShadow: '0 -2px 8px rgba(0,0,0,0.1)',
+      }}>
+        {[{ path: '/home', icon: '🏠', label: '首页' }, { path: '/achievement', icon: '🏆', label: '成就' }, { path: '/profile', icon: '👤', label: '我的' }].map(tab => (
+          <button key={tab.path} onClick={() => router.push(tab.path)} style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'center', color: colors.primary }}>
+            <span style={{ fontSize: 24 }}>{tab.icon}</span>
+            <p style={{ fontSize: 12 }}>{tab.label}</p>
+          </button>
+        ))}
+      </nav>
+    </div>
   )
 }
