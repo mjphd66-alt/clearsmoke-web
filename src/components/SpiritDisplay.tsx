@@ -49,7 +49,7 @@ export function SpiritDisplay({ spirit, days, onPress }: SpiritDisplayProps) {
         padding: 24,
         backgroundColor: colors.card,
         borderRadius: 16,
-        marginVertical: 16,
+        marginTop: 16, marginBottom: 16,
         cursor: onPress ? 'pointer' : 'default',
       }}
     >

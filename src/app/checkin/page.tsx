@@ -67,7 +67,7 @@ export default function CheckInPage() {
         <p style={{ fontSize: 16, color: colors.textLight, marginTop: 8 }}>坚持不吸烟，保护你的精灵</p>
       </header>
 
-      <div style={{ textAlign: 'center', marginVertical: 32 }}>
+      <div style={{ textAlign: 'center', marginTop: 32, marginBottom: 32 }}>
         <span style={{ fontSize: 100 }}>{spirit?.type === 'tree' ? '🌱' : '🥚'}</span>
         <p style={{ fontSize: 14, color: colors.primary, marginTop: 8 }}>点击打卡为精灵充能</p>
       </div>

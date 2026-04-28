@@ -77,13 +77,13 @@ export default function HomePage() {
       <SpiritDisplay spirit={spirit} days={totalDays} onPress={() => router.push('/profile')} />
       {spirit && <EnergyBar energy={spirit.energy} maxEnergy={100} />}
 
-      <div style={{ display: 'flex', gap: 12, marginVertical: 16 }}>
+      <div style={{ display: 'flex', gap: 12, marginTop: 16, marginBottom: 16 }}>
         <StatCard icon="📅" label="戒烟天数" value={String(totalDays)} unit="天" />
         <StatCard icon="🚬" label="少吸" value={String(cigarettesAvoided)} unit="支" />
         <StatCard icon="💰" label="省钱" value={String(moneySaved.toFixed(0))} unit="元" />
       </div>
 
-      <div className="card" style={{ marginVertical: 16 }}>
+      <div className="card" style={{ marginTop: 16, marginBottom: 16 }}>
         <h3 style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 8 }}>当前关卡</h3>
         <p style={{ fontSize: 20, fontWeight: 'bold', color: colors.primary }}>{currentLevel.name}</p>
         <p style={{ fontSize: 14, color: colors.textLight, marginTop: 4 }}>{currentLevel.description}</p>
