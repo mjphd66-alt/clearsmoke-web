@@ -144,7 +144,7 @@ export const achievementService = {
           user_id: 'local-user',
           achievement_type: 'duration',
           achievement_name: def.name,
-          achievement_level: def.level,
+          achievement_level: def.level as 'bronze' | 'silver' | 'gold' | 'diamond',
           unlocked_at: new Date().toISOString(),
         }
         existing.push(newAchievement)

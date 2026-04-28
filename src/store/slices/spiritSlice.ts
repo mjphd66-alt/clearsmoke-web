@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { Spirit } from '../types'
+import { Spirit } from '../../types'
 
 interface SpiritState {
   spirit: Spirit | null
